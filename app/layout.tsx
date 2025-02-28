@@ -46,10 +46,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${allianceFont.className} ${allianceFont.variable}`}>
-        <AppHeader />
-        <TestFlightBanner />
         {children}
-        <AppFooter />
       </body>
     </html>
   );
