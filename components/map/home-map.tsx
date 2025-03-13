@@ -185,6 +185,17 @@ export default function MapChart() {
       const countryName = countryNames[country];
       const countryData = countryCertsData[countryName];
 
+      // Special case for India - mark as not issuing e-passports
+      if (countryName === 'India') {
+        countryRes[countryName] = {
+          name: countryName,
+          issueType: issuePassTypes.DO_NOT_ISSUE,
+          defaultColor: '#b0bfa7',
+          countryCode: country,
+        };
+        continue;
+      }
+
       countryRes[countryName] = {
         name: countryName,
         issueType: issuePassTypes.DO_NOT_ISSUE,
