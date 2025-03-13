@@ -1,0 +1,14 @@
+{
+  "applinks": {
+      "apps": [],
+      "details": [
+           {
+             "appID": "5B29R5LYHQ.com.warroom.proofofpassport",
+             "paths": ["*"] 
+           }
+       ]
+   },
+  "appclips": {
+      "apps": ["5B29R5LYHQ.com.warroom.proofofpassport.Clip"]
+  }
+}
