@@ -146,5 +146,5 @@ body.globalMap .highlightInfo {
 .country-tooltip {
     max-width: none !important;
     /* Override the default max-width */
-    background-color: rgb(11, 65, 26);
+    background-color: rgb(11, 65, 26) !important;
 }
