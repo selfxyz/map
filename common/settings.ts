@@ -7,9 +7,9 @@ export interface MenuItem {
 }
 
 export const SITE_CONFIG = {
-  ID: "openpassport",
-  NAME: "OpenPassport",
-  DESCRIPTION: "Prove your humanity while staying anonymous",
+  ID: "self",
+  NAME: "Self",
+  DESCRIPTION: "Future proof security",
 };
 
 export const LINKS: Record<string, string> = {

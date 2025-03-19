@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     template: `%s - ${SITE_CONFIG.NAME}`,
   },
   description: SITE_CONFIG.DESCRIPTION,
+  metadataBase: new URL('https://self.xyz'),
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -45,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${allianceFont.className} ${allianceFont.variable}`}>
+      <body className={`${allianceFont.className} ${allianceFont.variable} globalMap`}>
         {children}
       </body>
     </html>
