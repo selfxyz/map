@@ -1,15 +1,9 @@
-type CertDetail = {
-  signature_algorithm: string;
-  hash_algorithm: string;
-  curve_exponent: string;
-  bit_length: number;
-  amount: number;
-};
+import { CertDetail } from './home-map';
 
 /**
  * verify the incoming alg, hash, bits are supported or not.
  */
-const supportIndicator = (countryCert: CertDetail, type: string = 'dsc') => {
+const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolean => {
   // Normalize signature algorithm name for consistency
   let signatureAlg = countryCert.signature_algorithm;
   if (signatureAlg === 'rsa-pss') {
@@ -151,9 +145,7 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc') => {
     }
 
     return signatureSupport && hashSupport && curveSupport && bitsSupport;
-  }
-
-  if (type === 'csca') {
+  } else {
     // csca supported algs added here
     const supportedListCsca: any = {
       rsa: {

@@ -29,7 +29,7 @@ const nextConfig = {
           has: [
             {
               type: 'host',
-              value: 'map.openpassport.app',
+              value: 'map.self.xyz',
             },
           ],
           destination: '/map/:path*',
@@ -71,8 +71,8 @@ const nextConfig = {
               destination: '/pattern/:path*',
           },
           {
-              source: '/map/icon.svg',
-              destination: '/icon.svg',
+              source: '/map/icon.png',
+              destination: '/icon.png',
           },
           {
               source: '/blog/_next/:path*',

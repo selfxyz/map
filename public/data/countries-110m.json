@@ -140,6 +140,11 @@
         },
         {
           "type": "Polygon",
+          "arcs": [[-115, -581, -583, 583]],
+          "properties": { "name": "Somaliland" }
+        },
+        {
+          "type": "Polygon",
           "arcs": [[-3, 116, 117, 118, -113, 119]],
           "id": "404",
           "properties": { "name": "Kenya" }
@@ -219,7 +224,7 @@
           "type": "Polygon",
           "arcs": [[176]],
           "id": "260",
-          "properties": { "name": "Fr. S. Antarctic Lands" }
+          "properties": { "name": "Antarctica" }
         },
         {
           "type": "Polygon",
@@ -445,7 +450,7 @@
           "type": "Polygon",
           "arcs": [[-270, 296, -295, 297, 298, 299]],
           "id": "384",
-          "properties": { "name": "Côte d'Ivoire" }
+          "properties": { "name": "Ivory Coast" }
         },
         {
           "type": "Polygon",
@@ -523,7 +528,7 @@
           "type": "Polygon",
           "arcs": [[-183, -322]],
           "id": "748",
-          "properties": { "name": "eSwatini" }
+          "properties": { "name": "Eswatini" }
         },
         {
           "type": "MultiPolygon",
@@ -1071,12 +1076,7 @@
         },
         {
           "type": "Polygon",
-          "arcs": [[570, 571]],
-          "properties": { "name": "N. Cyprus" }
-        },
-        {
-          "type": "Polygon",
-          "arcs": [[-572, 572]],
+          "arcs": [[570, 571, 572]],
           "id": "196",
           "properties": { "name": "Cyprus" }
         },
@@ -1109,11 +1109,6 @@
           "arcs": [[-553, 581, 582, -580]],
           "id": "262",
           "properties": { "name": "Djibouti" }
-        },
-        {
-          "type": "Polygon",
-          "arcs": [[-115, -581, -583, 583]],
-          "properties": { "name": "Somaliland" }
         },
         {
           "type": "Polygon",

@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { Grid, Tooltip, Zoom } from '@mui/material';
 import React, { useEffect, useState } from 'react';
@@ -13,359 +13,179 @@ import ReactCountryFlag from 'react-country-flag';
 import useSettings from '@/hooks/useSettings';
 import { supportIndicator } from './supported-algorithms-verifier';
 
-const geoUrl = 'data/countries-110m.json';
+const geoUrl = "data/countries-110m.json";
+
+enum IssuanceStatus {
+  NO_ISSUANCE = 0,
+  NO_CERT_AVAILABLE = 1,
+  NO_SUPPORT = 2,
+  PARTIAL_SUPPORT = 3,
+  FULL_SUPPORT = 4,
+}
+
+type CountryData = {
+  countryCode: string;
+  dscData: CertDetail[];
+  cscaData: CertDetail[];
+  issuanceStatus: IssuanceStatus;
+}
+
+export type CertDetail = {
+  signature_algorithm: string;
+  hash_algorithm: string;
+  curve_exponent: string;
+  bit_length: number;
+  amount: number;
+  isSupported?: boolean;
+};
+
+type SigAlgData = Record<string, CertDetail[]>
+
+// Recent data on the number of biometric passports issued in millions
+const BIOMETRIC_PASSPORTS_ISSUED = {
+  "Canada": 27,
+  "China": 212,
+  "France": 34,
+  "Germany": 34,
+  "Japan": 21,
+  "United Kingdom": 51,
+  "United States of America": 167,
+};
+
+const COUNTRY_SPECIFIC_COMMENTS = {
+  "India": "Just recently started issuing e-passports, penetration is very low.",
+  "Iran": "Atypical use of RSA, not planning on reaching full support in the near future.",
+  "Austria": "Atypical use of RSA, not planning on reaching full support in the near future.",
+}
+
+const COLORS = {
+  [IssuanceStatus.NO_ISSUANCE]: '#b4b5b3',
+  [IssuanceStatus.NO_CERT_AVAILABLE]: '#b0cca3',
+  [IssuanceStatus.NO_SUPPORT]: '#90b576',
+  [IssuanceStatus.PARTIAL_SUPPORT]: '#70ac48',
+  [IssuanceStatus.FULL_SUPPORT]: '#548233',
+  "HOVER": '#4d7332',
+  "PRESSED": '#507f3a',
+}
+
 
 export default function MapChart() {
-  type ObjectBool = {
-    [key: string]: boolean;
-  };
-
-  type ObjectStr = {
-    [key: string]: string;
-  };
-
-  type ObjectNum = {
-    [key: string]: number;
-  };
-
-  enum issuePassTypes {
-    DO_NOT_ISSUE = 1000,
-    ISSUE_WITHOUT_SUPPORT = 1001,
-    ISSUE_WITH_SUPPORT = 1002,
-  }
-
-  // accurate data on the number of passports issued on the internet in 100k
-  const ACCURATE_ISSUED_PASSPORTS: ObjectNum = {
-    Canada: 270,
-    China: 2120,
-    France: 340,
-    Germany: 340,
-    Japan: 210,
-    'United Kingdom': 510,
-    'United States of America': 1670,
-  };
-
-  const [allCountriesData, setAllCountriesData] = useState<any>({});
-  const [allIssuesCountry, setAllIssuesCountry] = useState<any>({});
+  const [countryData, setCountryData] = useState<Record<string, CountryData>>({});
   const { isMobile } = useSettings();
   const [countryName, setCountryName] = useState('');
 
-  const formatJsonData = (
-    dscInput: any = {},
-    cscaInput: any = {},
-    countryNames: ObjectStr = {}
-  ): any => {
-    delete dscInput?.default;
-    delete cscaInput?.default;
-
-    const countryData: any = {};
-
-    for (const countryCode of Object.keys(countryNames)) {
+  const mergeMetadata = (
+    dscInput: SigAlgData,
+    cscaInput: SigAlgData,
+    countriesIssuing: string[],
+    countryNames: Record<string, string>
+  ): Record<string, CountryData> => {
+    return Object.keys(countryNames).reduce((acc, countryCode) => {
       const name = countryNames[countryCode];
-      countryData[name] = false;
 
-      // verify specific country having dsc / csca records
-      const dscCountryData = dscInput[countryCode];
-      const cscaCountryData = cscaInput[countryCode];
-      if (dscCountryData?.length || cscaCountryData?.length) {
-        const countryObj: any = {};
+      const dscDataWithSupport = dscInput[countryCode]?.map(cert => ({
+        ...cert,
+        isSupported: supportIndicator(cert, 'dsc')
+      })) || [];
 
-        countryObj['name'] = name;
-        countryObj['countryCode'] = countryCode;
-        countryObj['dscExist'] = false;
-        countryObj['cscaExist'] = false;
-
-        let count = 0;
-        const signatureCountryAlgs: ObjectBool = {};
-        if (dscCountryData?.length > 0) {
-          countryObj['dscExist'] = true;
-          countryObj['dscRecords'] = [...dscCountryData];
-          for (const dscEachAlg of dscCountryData) {
-            count += dscEachAlg?.amount;
-            const signatureStr = `${dscEachAlg.signature_algorithm.toUpperCase()} with ${dscEachAlg.hash_algorithm.toUpperCase()}`;
-            const dscSupport = supportIndicator(dscEachAlg);
-            if (!signatureCountryAlgs[signatureStr]) {
-              signatureCountryAlgs[signatureStr] = false;
-            }
-            if (dscSupport) {
-              signatureCountryAlgs[signatureStr] = true;
-            }
-            dscEachAlg['is_supported'] = dscSupport;
-          }
-        }
-
-        if (cscaCountryData?.length > 0) {
-          countryObj['cscaExist'] = true;
-          countryObj['cscaRecords'] = [...cscaCountryData];
-          for (const cscaEachAlg of cscaCountryData) {
-            const signatureStr = `${cscaEachAlg.signature_algorithm.toUpperCase()} with ${cscaEachAlg.hash_algorithm.toUpperCase()}`;
-            const cscaSupport = supportIndicator(cscaEachAlg, 'csca');
-            if (!signatureCountryAlgs[signatureStr]) {
-              signatureCountryAlgs[signatureStr] = false;
-            }
-            if (cscaSupport) {
-              signatureCountryAlgs[signatureStr] = true;
-            }
-            cscaEachAlg['is_supported'] = cscaSupport;
-          }
-        }
-        countryObj['allAlgs'] = Object.entries(signatureCountryAlgs);
-        countryObj['amount'] = count;
-
-        countryData[name] = countryObj;
-      }
-    }
-
-    return countryData;
-  };
-
-  const fetchJsonInfo = async () => {
-    try {
-      // Intermediate Certificates (DSC) issued by each country
-      const dscFetchData = await fetch(
-        'https://raw.githubusercontent.com/openpassport-org/openpassport/14c42a5ae0f849d1aa7be7afc1745f7e70952ab5/registry/outputs/map_dsc.json'
-      );
-      const dscData = await dscFetchData.json();
-
-      // Top-level Certificates (CSCA) issued by each country
-      // Instead of fetching from remote URL, import the local file
-      const cscaData = await import('./../../app/src/map_csca.json');
-
-      const countryNames: any = await import(
-        './../../public/data/all-countries.json'
-      );
-
-      if (!dscData || !cscaData) {
-        return;
-      }
-
-      const allCountriesData = formatJsonData(
-        { ...dscData },
-        { ...cscaData },
-        countryNames
-      );
-      console.log('allCountriesData :>> ', allCountriesData);
-      setAllCountriesData(allCountriesData);
-
-      // e-passport supported countries
-      let ePassSupportCountries: any = await import(
-        './../../public/data/supported-countries.json'
-      );
-      if (ePassSupportCountries?.default?.length) {
-        ePassSupportCountries = ePassSupportCountries.default;
-      }
-
-      setIssuesSupportsVisuals(
-        allCountriesData,
-        ePassSupportCountries,
-        countryNames
-      );
-    } catch (err) {
-      console.log('err :>> ', err);
-    }
-  };
-
-  const setIssuesSupportsVisuals = (
-    countryCertsData: any,
-    ePassCountries: string[],
-    countryNames: { [x: string]: any }
-  ) => {
-    if (!countryCertsData || !ePassCountries) {
-      return;
-    }
-
-    // construct obj to find the e-passport supported countries
-    const supportedCountriesObj: any = {};
-    ePassCountries.forEach((countryCode: string) => {
-      supportedCountriesObj[countryCode] = true;
-    });
-
-    const countryRes: any = {};
-    for (const country of Object.keys(countryNames)) {
-      const countryName = countryNames[country];
-      const countryData = countryCertsData[countryName];
+      const cscaDataWithSupport = cscaInput[countryCode]?.map(cert => ({
+        ...cert,
+        isSupported: supportIndicator(cert, 'csca')
+      })) || [];
 
       // Special case for India - mark as not issuing e-passports
-      if (countryName === 'India') {
-        countryRes[countryName] = {
-          name: countryName,
-          issueType: issuePassTypes.DO_NOT_ISSUE,
-          defaultColor: '#b0bfa7',
-          countryCode: country,
+      if (name === 'India') {
+        acc[name] = {
+          countryCode,
+          dscData: dscDataWithSupport,
+          cscaData: cscaDataWithSupport,
+          issuanceStatus: IssuanceStatus.NO_ISSUANCE
         };
-        continue;
+        return acc;
       }
-
-      countryRes[countryName] = {
-        name: countryName,
-        issueType: issuePassTypes.DO_NOT_ISSUE,
-        defaultColor: '#b0bfa7',
-        countryCode: country,
+      
+      acc[name] = {
+        countryCode,
+        dscData: dscDataWithSupport,
+        cscaData: cscaDataWithSupport,
+        issuanceStatus: 
+          cscaDataWithSupport.length > 0 &&
+          dscDataWithSupport.every(cert => cert.isSupported) &&
+          cscaDataWithSupport.every(cert => cert.isSupported)
+            ? IssuanceStatus.FULL_SUPPORT :
+          cscaDataWithSupport.length > 0 &&
+          cscaDataWithSupport.some(cert => cert.isSupported)
+            ? IssuanceStatus.PARTIAL_SUPPORT :
+          cscaDataWithSupport.length > 0 &&
+          !cscaDataWithSupport.some(cert => cert.isSupported)
+            ? IssuanceStatus.NO_SUPPORT :
+          countriesIssuing.includes(countryCode)
+            ? IssuanceStatus.NO_CERT_AVAILABLE :
+          IssuanceStatus.NO_ISSUANCE,
       };
 
-      // Simplified color logic - check for CSCA support or DSC support
-      let hasDscSupport = false;
-      let hasCscaSupport = false;
+      return acc;
+    }, {} as Record<string, CountryData>);
+  };
 
-      // Check DSC support
-      if (countryData?.dscRecords?.length) {
-        for (const alg of countryData.dscRecords) {
-          if (supportIndicator(alg, 'dsc')) {
-            hasDscSupport = true;
-            break;
-          }
-        }
-      }
+  const fetchMapData = async () => {
+    try {
+      const dscData: SigAlgData = await fetch('https://raw.githubusercontent.com/selfxyz/self/main/registry/outputs/map_dsc.json')
+        .then(response => response.json());
 
-      // Check CSCA support
-      if (countryData?.cscaRecords?.length) {
-        for (const alg of countryData.cscaRecords) {
-          if (supportIndicator(alg, 'csca')) {
-            hasCscaSupport = true;
-            break;
-          }
-        }
-      }
+      const cscaData: SigAlgData = await fetch('https://raw.githubusercontent.com/selfxyz/self/main/registry/outputs/map_csca.json')
+        .then(response => response.json());
 
-      // Set color based on support status - consider a country fully supported if it has CSCA support
-      if (hasCscaSupport) {
-        countryRes[countryName].issueType = issuePassTypes.ISSUE_WITH_SUPPORT;
-        countryRes[countryName].defaultColor = '#548233';
-      } else if (hasDscSupport || supportedCountriesObj[country] || countryData?.cscaRecords?.length || countryData?.dscRecords?.length) {
-        countryRes[countryName].issueType = issuePassTypes.ISSUE_WITHOUT_SUPPORT;
-        countryRes[countryName].defaultColor = '#70ac48';
-      }
+      const countryNames = (await import(
+        './../../public/data/all-countries.json'
+      )).default;
+
+      const countriesIssuingEPassports = (await import(
+        './../../public/data/issuing-countries.json'
+      )).default;
+      
+      setCountryData(mergeMetadata(
+        dscData,
+        cscaData,
+        countriesIssuingEPassports,
+        countryNames
+      ));
+    } catch (err) {
+      console.log('error fetching map data', err);
     }
-
-    setAllIssuesCountry(countryRes);
   };
 
   useEffect(() => {
-    fetchJsonInfo();
-
-    // apply custom styles to map page
-    document.body.classList.add('globalMap');
-    // Clean up: Remove classes from body
-    window.scrollTo({ top: 0, left: 0 });
-    return () => {
-      document.body.classList.remove('globalMap');
-    };
+    fetchMapData();
   }, []);
 
   const formatAlgorithmDetails = (cert: any) => {
-    let keyDetails = '';
-
     if (cert.signature_algorithm === 'rsapss') {
       cert.signature_algorithm = 'rsa-pss';
     }
 
-    const signatureStr = `${cert.hash_algorithm.toLowerCase()} ${cert.signature_algorithm.toLowerCase()}`;
+    const signatureStr = `${cert.hash_algorithm.toLowerCase()} with ${cert.signature_algorithm.toLowerCase()}`;
 
-    if (cert.signature_algorithm === 'ecdsa') {
-      // Just show the curve name without "curve=" prefix
-      keyDetails = `${cert?.curve_exponent}`;
-    } else {
-      // For RSA/RSA-PSS, keep the e= prefix for exponent
-      keyDetails = `e=${cert?.curve_exponent} ${cert?.bit_length}`;
-    }
+    const keyDetails = cert.signature_algorithm === 'ecdsa'
+      ? `${cert?.curve_exponent}`
+      : `e=${cert?.curve_exponent} ${cert?.bit_length}`;
 
     return {
       signatureStr,
-      keyDetails,
-      isSupported: cert.is_supported
+      keyDetails
     };
   };
 
   const highLightInfo = (countryName: string) => {
-    if (!countryName) {
-      return;
-    }
-    let info: React.JSX.Element;
-    const countryData = allCountriesData[countryName];
-    if (countryData) {
-      const accurateCountryCount =
-        ACCURATE_ISSUED_PASSPORTS[countryName] || countryData?.amount;
-      info = (
-        <div className="highlightInfo text-white">
-          <h3 className="flex items-center justify-start gap-2 text-white">
-            <b>{countryName || ''}</b>
-            <ReactCountryFlag
-              countryCode={countryData.countryCode}
-              svg
-              style={{
-                width: '1.5em',
-                height: '1em',
-                verticalAlign: 'middle',
-              }}
-              title={countryData.name}
-            />
-          </h3>
+    const data = countryData[countryName];
 
-          <div className="issued-dscs text-white">
-            {accurateCountryCount ? (
-              <p className="issuedCount text-white">
-                ~ {new Intl.NumberFormat().format(
-                  accurateCountryCount
-                    ? accurateCountryCount * 100_000
-                    : accurateCountryCount
-                )}{' '}
-                passports issued
-              </p>
-            ) : null}
-
-            {/* Show CSCA certificates */}
-            {countryData?.cscaExist && (
-              <div className="text-white">
-                <p className="algorithmTitle font-semibold mt-2 text-white">Top-level Certificates (CSCA)</p>
-                {countryData?.cscaRecords.map((csca: any, index: number) => {
-                  const { signatureStr, keyDetails, isSupported } = formatAlgorithmDetails(csca);
-
-                  return (
-                    <p
-                      key={`csca-${index}`}
-                      className="flex items-center text-nowrap text-white"
-                    >
-                      &nbsp;-&nbsp;
-                      {`${csca?.amount} issued: ${signatureStr} ${keyDetails}`}
-                      {isSupported ? '  ✅' : '  🚧'}
-                    </p>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Show DSC certificates */}
-            {countryData?.dscExist && (
-              <div className="text-white">
-                <p className="algorithmTitle font-semibold mt-2 text-white">
-                  Intermediate Certificates (DSC)
-                </p>
-                {countryData?.dscRecords.map((dsc: any, index: number) => {
-                  const { signatureStr, keyDetails, isSupported } = formatAlgorithmDetails(dsc);
-
-                  return (
-                    <p
-                      key={`dsc-${index}`}
-                      className="flex items-center text-nowrap text-white"
-                    >
-                      &nbsp;-&nbsp;
-                      {`${dsc?.amount} issued: ${signatureStr} ${keyDetails}`}
-                      {isSupported ? '  ✅' : '  🚧'}
-                    </p>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    } else {
-      info = (
+    if (!data) {
+      return (
         <div className="workInProgress text-white">
           <h3 className="flex items-center justify-start gap-2 text-white">
             <b>{countryName || ''}</b>
             <ReactCountryFlag
-              countryCode={allIssuesCountry[countryName]?.countryCode}
+              countryCode={countryData[countryName]?.countryCode}
               svg
               style={{
                 width: '1.5em',
@@ -374,9 +194,10 @@ export default function MapChart() {
               }}
               title={countryName}
             />
-            {allIssuesCountry[`${countryName}`] ? '🚧' : null}
           </h3>
-          {allIssuesCountry[`${countryName}`] && isMobile ? (
+          {countryData[countryName]?.issuanceStatus === IssuanceStatus.NO_CERT_AVAILABLE ? (
+            <p className="text-white">Issuing but certificates not published</p>
+          ) : countryData[countryName] && isMobile ? (
             <>
               <p className="text-white">Work in progress</p>
             </>
@@ -390,9 +211,114 @@ export default function MapChart() {
         </div>
       );
     }
+    const accurateCountryCount = BIOMETRIC_PASSPORTS_ISSUED[countryName as keyof typeof BIOMETRIC_PASSPORTS_ISSUED];
+    const countrySpecificComment = COUNTRY_SPECIFIC_COMMENTS[countryName as keyof typeof COUNTRY_SPECIFIC_COMMENTS];
 
-    return info;
+    return (
+      <div className="highlightInfo text-white">
+        <h3 className="flex items-center justify-start gap-2 text-white">
+          <b>{countryName || ''}</b>
+          <ReactCountryFlag
+            countryCode={data.countryCode}
+            svg
+            style={{
+              width: '1.5em',
+              height: '1em',
+              verticalAlign: 'middle',
+            }}
+            title={countryName}
+          />
+        </h3>
+
+        <div className="issued-dscs text-white">
+          {accurateCountryCount ? (
+            <p className="issuedCount text-white">
+              ~ {new Intl.NumberFormat().format(
+                  accurateCountryCount * 1_000_000
+              )}{' '}
+              passports issued
+            </p>
+          ) : null}
+
+          {countrySpecificComment && (
+            <p className="issuedCount text-white">
+              {countrySpecificComment}
+            </p>
+          )}
+
+          {data.issuanceStatus === IssuanceStatus.NO_ISSUANCE && countryName !== 'India' && (
+            <p className="issuedCount text-white">
+              Not issuing e-passport
+            </p>
+          )}
+
+          {data.issuanceStatus === IssuanceStatus.NO_CERT_AVAILABLE && (
+            <p className="issuedCount text-white">
+              Issuing biometric passports, but no certificates published on international registries.
+            </p>
+          )}
+
+          {/* Show CSCA certificates */}
+          {data.cscaData.length > 0 && (
+            <div className="text-white">
+              <p className="algorithmTitle font-semibold mt-2 text-white">Top-level Certificates (CSCA)</p>
+              {data.cscaData.map((csca: any, index: number) => {
+                const { signatureStr, keyDetails } = formatAlgorithmDetails(csca);
+
+                return (
+                  <p
+                    key={`csca-${index}`}
+                    className="flex items-center text-nowrap text-white"
+                  >
+                    &nbsp;-&nbsp;
+                    {`${csca.amount} issued: ${signatureStr} ${keyDetails}`}
+                    {csca.isSupported ? '  ✅' : '  🚧'}
+                  </p>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Show DSC certificates */}
+          {data.dscData.length > 0 && (
+            <div className="text-white">
+              <p className="algorithmTitle font-semibold mt-2 text-white">
+                Intermediate Certificates (DSC)
+              </p>
+              {data.dscData.map((dsc: any, index: number) => {
+                const { signatureStr, keyDetails } = formatAlgorithmDetails(dsc);
+
+                return (
+                  <p
+                    key={`dsc-${index}`}
+                    className="flex items-center text-nowrap text-white"
+                  >
+                    &nbsp;-&nbsp;
+                    {`${dsc.amount} issued: ${signatureStr} ${keyDetails}`}
+                    {dsc.isSupported ? '  ✅' : '  🚧'}
+                  </p>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
+
+  if (Object.keys(countryData).length === 0) {
+    return (
+      <div>
+        <div className={`mapRow`}>
+          <div className={`mapSection`}>
+            <div className="workInProgress text-white">
+              <p>Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -435,11 +361,8 @@ export default function MapChart() {
                       <Geography
                         key={geo.rsmKey}
                         geography={geo}
-                        className=" font-alliance"
+                        className="font-alliance"
                         onClick={() => {
-                          if (!isMobile) {
-                            return;
-                          }
                           if (isMobile) {
                             setCountryName(geo.properties.name);
                           }
@@ -451,20 +374,13 @@ export default function MapChart() {
                         }}
                         style={{
                           default: {
-                            fill: allIssuesCountry[`${geo.properties.name}`]
-                              ? allIssuesCountry[`${geo.properties.name}`]
-                                .defaultColor
-                              : '#b0bfa7',
+                            fill: COLORS[countryData[geo.properties.name]?.issuanceStatus] ?? COLORS[IssuanceStatus.NO_ISSUANCE],
                           },
                           hover: {
-                            fill: allIssuesCountry[`${geo.properties.name}`]
-                              ? '#4d7332'
-                              : '#b0bfa7',
+                            fill: COLORS.HOVER,
                           },
                           pressed: {
-                            fill: allIssuesCountry[`${geo.properties.name}`]
-                              ? '#507f3a'
-                              : '#b0bfa7',
+                            fill: COLORS.PRESSED,
                           },
                         }}
                       />
@@ -494,22 +410,39 @@ export default function MapChart() {
           xs={12}
           className="legend-info lg:left-6 text-black relative bottom-2 lg:bottom-12 lg:absolute"
         >
-          <h2 className={`homeTitle`}>OpenPassport country coverage</h2>
+          <h2 className={`homeTitle`}>Self country coverage</h2>
           <div className="legend-info-item flex items-center">
             <p
-              className={`w-8 h-4 bg-[#548233] ${isMobile ? 'ms-2' : 'me-2'}`}
+              style={{ backgroundColor: COLORS[IssuanceStatus.FULL_SUPPORT] }}
+              className={`w-8 h-4 ${isMobile ? 'ms-2' : 'me-2'}`}
             ></p>{' '}
-            Fully supported countries
+            Fully supported
           </div>
           <div className="legend-info-item flex items-center">
             <p
-              className={`w-8 h-4 bg-[#70ac48] ${isMobile ? 'ms-2' : 'me-2'}`}
+              style={{ backgroundColor: COLORS[IssuanceStatus.PARTIAL_SUPPORT] }}
+              className={`w-8 h-4 ${isMobile ? 'ms-2' : 'me-2'}`}
             ></p>{' '}
             Partially supported
           </div>
           <div className="legend-info-item flex items-center">
             <p
-              className={`w-8 h-4 bg-[#b0bfa7] ${isMobile ? 'ms-2' : 'me-2'}`}
+              style={{ backgroundColor: COLORS[IssuanceStatus.NO_SUPPORT] }}
+              className={`w-8 h-4 ${isMobile ? 'ms-2' : 'me-2'}`}
+            ></p>{' '}
+            Not supported
+          </div>
+          <div className="legend-info-item flex items-center">
+            <p
+              style={{ backgroundColor: COLORS[IssuanceStatus.NO_CERT_AVAILABLE] }}
+              className={`w-8 h-4 ${isMobile ? 'ms-2' : 'me-2'}`}
+            ></p>{' '}
+            Issuing but no certificates available
+          </div>
+          <div className="legend-info-item flex items-center">
+            <p
+              style={{ backgroundColor: COLORS[IssuanceStatus.NO_ISSUANCE] }}
+              className={`w-8 h-4 ${isMobile ? 'ms-2' : 'me-2'}`}
             ></p>{' '}
             Not issuing e-passport
           </div>
