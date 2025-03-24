@@ -71,8 +71,8 @@ const nextConfig = {
               destination: '/pattern/:path*',
           },
           {
-              source: '/map/icon.png',
-              destination: '/icon.png',
+              source: '/map/icon.svg',
+              destination: '/icon.svg',
           },
           {
               source: '/blog/_next/:path*',
