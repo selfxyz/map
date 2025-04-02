@@ -87,8 +87,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         },
         sha256: {
           curves: [
@@ -97,8 +98,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         },
         sha384: {
           curves: [
@@ -107,8 +109,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         },
         sha512: {
           curves: [
@@ -117,8 +120,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         }
       },
     }
@@ -216,6 +220,17 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
         },
       },
       ecdsa: {
+        unknown: {
+          curves: [
+            'brainpoolp224r1',
+            'brainpoolp256r1',
+            'secp256r1',
+            'secp384r1',
+            'brainpoolp384r1',
+            'brainpoolp512r1',
+          ],
+          bits: [224, 256, 384, 512]
+        },
         sha1: {
           curves: [
             'brainpoolp224r1',
@@ -223,8 +238,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         },
         sha256: {
           curves: [
@@ -233,8 +249,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         },
         sha384: {
           curves: [
@@ -243,8 +260,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         },
         sha512: {
           curves: [
@@ -253,8 +271,9 @@ const supportIndicator = (countryCert: CertDetail, type: string = 'dsc'): boolea
             'secp256r1',
             'secp384r1',
             'brainpoolp384r1',
+            'brainpoolp512r1',
           ],
-          bits: [224, 256, 384]
+          bits: [224, 256, 384, 512]
         }
       }
     }
