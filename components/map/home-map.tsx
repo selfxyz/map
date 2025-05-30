@@ -130,10 +130,10 @@ export default function MapChart() {
 
   const fetchMapData = async () => {
     try {
-      const dscData: SigAlgData = await fetch('https://raw.githubusercontent.com/selfxyz/self/main/registry/outputs/map_dsc.json')
+      const dscData: SigAlgData = await fetch('https://raw.githubusercontent.com/selfxyz/self/52dba2742b4c37a957eb5ab8ebee83fdccdcf187/registry/outputs/map_dsc.json')
         .then(response => response.json());
 
-      const cscaData: SigAlgData = await fetch('https://raw.githubusercontent.com/selfxyz/self/main/registry/outputs/map_csca.json')
+      const cscaData: SigAlgData = await fetch('https://raw.githubusercontent.com/selfxyz/self/52dba2742b4c37a957eb5ab8ebee83fdccdcf187/registry/outputs/map_csca.json')
         .then(response => response.json());
 
       const countryNames = (await import(
