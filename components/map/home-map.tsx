@@ -53,7 +53,7 @@ const BIOMETRIC_PASSPORTS_ISSUED = {
 };
 
 const COUNTRY_SPECIFIC_COMMENTS = {
-  "India": "Just recently started issuing e-passports, penetration is very low.",
+  "India": "Just recently started issuing e-passports, penetration is very low. Fully supported via Aardhaar verification.",
   "Iran": "Atypical use of RSA, not planning on reaching full support in the near future.",
   "Austria": "Atypical use of RSA, not planning on reaching full support in the near future.",
 }
@@ -93,13 +93,13 @@ export default function MapChart() {
         isSupported: supportIndicator(cert, 'csca')
       })) || [];
 
-      // Special case for India - mark as not issuing e-passports
+      // Special case for India - mark as fully supported via Aardhaar
       if (name === 'India') {
         acc[name] = {
           countryCode,
           dscData: dscDataWithSupport,
           cscaData: cscaDataWithSupport,
-          issuanceStatus: IssuanceStatus.NO_ISSUANCE
+          issuanceStatus: IssuanceStatus.FULL_SUPPORT
         };
         return acc;
       }
