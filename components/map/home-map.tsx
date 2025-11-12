@@ -53,7 +53,7 @@ const BIOMETRIC_PASSPORTS_ISSUED = {
 };
 
 const COUNTRY_SPECIFIC_COMMENTS = {
-  "India": "Just recently started issuing e-passports, penetration is very low. Fully supported via Aardhaar verification.",
+  "India": "Just recently started issuing e-passports, penetration is very low. Fully supported via Aadhaar verification.",
   "Iran": "Atypical use of RSA, not planning on reaching full support in the near future.",
   "Austria": "Atypical use of RSA, not planning on reaching full support in the near future.",
 }
