@@ -1,6 +1,8 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fselfxyz%2Fmap.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fselfxyz%2Fmap?ref=badge_shield)
+
 
 First, run the development server:
 
@@ -38,3 +40,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 ## Certificates API
 
 For documentation on the certificates API, see [here](https://github.com/zk-passport/openpassport.app/tree/main/pages/api).
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fselfxyz%2Fmap.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fselfxyz%2Fmap?ref=badge_large)
